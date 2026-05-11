@@ -66,27 +66,27 @@ export const InputComposer = ({
               }}
             />
             <div className="flex items-center gap-1 pr-1">
-              <button className="w-9 h-9 flex items-center justify-center text-[#8B918C] hover:text-[#5F6661] transition-colors" aria-label="Voice input">
+              <button className="w-11 h-11 flex items-center justify-center text-[#8B918C] hover:text-[#5F6661] transition-colors" aria-label="Voice input">
                 <Mic size={19} strokeWidth={1.5} />
               </button>
               <button 
                 onClick={onCameraOpen}
-                className="w-9 h-9 flex items-center justify-center text-[#8B918C] hover:text-[#5F6661] transition-colors"
+                className="w-11 h-11 flex items-center justify-center text-[#8B918C] hover:text-[#5F6661] transition-colors"
                 aria-label="Photo input"
               >
                 <Camera size={19} strokeWidth={1.5} />
               </button>
               <button
                 onClick={onBarcodeOpen}
-                className="w-9 h-9 flex items-center justify-center text-[#8B918C] hover:text-[#5F6661] transition-colors"
-                aria-label="Label scan"
+                className="w-11 h-11 flex items-center justify-center text-[#8B918C] hover:text-[#5F6661] transition-colors"
+                aria-label="Use label"
               >
                 <ScanBarcode size={19} strokeWidth={1.5} />
               </button>
               <button 
                 onClick={submitText}
                 disabled={!text.trim()}
-                className="w-10 h-10 bg-[#FFD6B4] rounded-full flex items-center justify-center text-[#5F6661] shadow-sm hover:scale-105 transition-transform disabled:opacity-35 disabled:hover:scale-100"
+                className="w-11 h-11 bg-[#FFD6B4] rounded-full flex items-center justify-center text-[#5F6661] shadow-sm hover:scale-105 transition-transform disabled:opacity-35 disabled:hover:scale-100"
                 aria-label="Submit food"
               >
                 <ArrowRight size={20} strokeWidth={2} />

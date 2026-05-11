@@ -8,7 +8,7 @@ type Meal = {
   calories?: number;
   weight: string;
   time: string;
-  source: 'Estimated' | 'From Memory' | 'Scanned' | 'Recent' | 'Manual';
+  source: 'Estimated' | 'From Memory' | 'Scanned' | 'Recent' | 'Homemade' | 'Saved';
   isEstimated?: boolean;
   carbRatio?: string;
   lastUsed?: string;
@@ -32,14 +32,14 @@ const defaultMemory: Meal[] = [
   { id: 'm2', name: "Sweet Potato Bowl", carbs: 65, weight: "350g", time: "Afternoon", source: "From Memory", lastUsed: "Monday", kind: "meal", mealMoment: "Afternoon", recurrence: "Used 2 times this week", usedThisWeek: 2, carbRatio: "19g per 100g" },
   { id: 'm3', name: "Oat Flat White", carbs: 14, weight: "240ml", time: "Morning", source: "From Memory", lastUsed: "Tuesday", kind: "custom_food", mealMoment: "Morning", recurrence: "Usually around now", usedThisWeek: 3, carbRatio: "6g per 100ml" },
   { id: 'm4', name: "Mom's Green Borscht", carbs: 22, weight: "1 bowl (300g)", time: "Saved Meal", source: "From Memory", carbRatio: "7.3g per 100g", lastUsed: "Last week", kind: "recipe", mealMoment: "Afternoon", recurrence: "Logged with lunch", ingredientCount: 7, usedThisWeek: 1 },
-  { id: 'm5', name: "Cottage Cheese Bowl", carbs: 18, weight: "usual bowl (220g)", time: "Saved Food", source: "Manual", carbRatio: "8g per 100g", lastUsed: "Yesterday", kind: "custom_food", mealMoment: "Evening", recurrence: "Last logged yesterday", usedThisWeek: 4 },
+  { id: 'm5', name: "Cottage Cheese Bowl", carbs: 18, weight: "usual bowl (220g)", time: "Saved Food", source: "Homemade", carbRatio: "8g per 100g", lastUsed: "Yesterday", kind: "custom_food", mealMoment: "Evening", recurrence: "Last logged yesterday", usedThisWeek: 4 },
   { id: 'm6', name: "Buckwheat Chicken Plate", carbs: 48, weight: "1 plate", time: "Recipe", source: "From Memory", carbRatio: "48g per portion", lastUsed: "Friday", kind: "recipe", mealMoment: "Evening", recurrence: "Often for dinner", ingredientCount: 5, usedThisWeek: 2 },
 ];
 
 const defaultLogs: Meal[] = [
   { id: 'l1', name: "Artisan Sourdough Avocado Toast", carbs: 32, weight: "120g", time: "09:15", source: "From Memory", mealMoment: "Morning" },
   { id: 'l2', name: "Sweet Potato Salad Bowl", carbs: 42, weight: "250g", time: "12:30", source: "From Memory", mealMoment: "Afternoon" },
-  { id: 'l3', name: "Cottage Cheese Bowl", carbs: 18, weight: "usual bowl (220g)", time: "19:10", source: "Manual", mealMoment: "Evening" },
+  { id: 'l3', name: "Cottage Cheese Bowl", carbs: 18, weight: "usual bowl (220g)", time: "19:10", source: "Homemade", mealMoment: "Evening" },
 ];
 
 const SolodkoContext = createContext<SolodkoContextType | undefined>(undefined);
@@ -85,7 +85,7 @@ export const SolodkoProvider = ({ children }: { children: React.ReactNode }) => 
           id: `mem-${meal.id}`,
           time: 'Recent Repeat',
           source: 'Recent' as const,
-          kind: meal.source === 'Manual' ? 'custom_food' : 'meal',
+          kind: meal.source === 'Homemade' ? 'custom_food' : 'meal',
           lastUsed: 'Today',
           usedThisWeek: 1,
           recurrence: 'Ready to log again'
@@ -107,7 +107,7 @@ export const SolodkoProvider = ({ children }: { children: React.ReactNode }) => 
       carbs: meal.carbs,
       calories: meal.calories,
       weight: meal.weight,
-      source: meal.source === 'Manual' ? 'Manual' : 'From Memory',
+      source: meal.source === 'Homemade' ? 'Homemade' : 'From Memory',
       isEstimated: meal.isEstimated,
       carbRatio: meal.carbRatio,
       lastUsed: 'Today',

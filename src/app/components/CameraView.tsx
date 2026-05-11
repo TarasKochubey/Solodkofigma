@@ -1,9 +1,10 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useReducedMotion } from 'motion/react';
 import { X, Camera as CameraIcon, ReceiptText, Utensils } from 'lucide-react';
 
 export const CameraView = ({ isOpen, mode = 'meal', onClose, onSimulateCapture, onNotFound }: { isOpen: boolean; mode?: 'meal' | 'label'; onClose: () => void; onSimulateCapture: () => void; onNotFound?: () => void }) => {
   const isLabel = mode === 'label';
+  const reduceMotion = useReducedMotion();
 
   return (
     <AnimatePresence>
@@ -19,17 +20,17 @@ export const CameraView = ({ isOpen, mode = 'meal', onClose, onSimulateCapture, 
           
           {/* Simulated Camera Window */}
           <motion.div 
-            initial={{ y: '100%', scale: 0.95 }}
-            animate={{ y: 0, scale: 1 }}
-            exit={{ y: '100%', scale: 0.95 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+            initial={reduceMotion ? { opacity: 0 } : { y: '100%', scale: 0.95 }}
+            animate={reduceMotion ? { opacity: 1 } : { y: 0, scale: 1 }}
+            exit={reduceMotion ? { opacity: 0 } : { y: '100%', scale: 0.95 }}
+            transition={reduceMotion ? { duration: 0.2 } : { type: 'spring', damping: 25, stiffness: 200 }}
             className="relative w-full h-[80%] bg-[#2E312F] rounded-t-[44px] shadow-[0_-24px_64px_rgba(31,36,34,0.32)] border-t border-white/10 overflow-hidden flex flex-col"
           >
             {/* Top Bar */}
             <div className="flex justify-between items-center px-6 pt-6 pb-2 relative z-10">
               <div>
                 <span className="font-sans text-[15px] font-medium text-white/78">{isLabel ? 'Place the label in view' : 'Frame the meal softly'}</span>
-                <p className="font-sans text-[12px] text-white/42 mt-0.5">{isLabel ? 'Barcode or nutrition label' : 'Meal photo or plate estimate'}</p>
+                <p className="font-sans text-[12px] text-white/42 mt-0.5">{isLabel ? 'Label or package' : 'Meal photo or plate'}</p>
               </div>
               <button 
                 onClick={onClose}
@@ -43,7 +44,7 @@ export const CameraView = ({ isOpen, mode = 'meal', onClose, onSimulateCapture, 
             <div className="flex-1 relative flex items-center justify-center">
               {/* Simulated camera feed - just a softly animated gradient for prototype */}
               <motion.div 
-                animate={{ 
+                animate={reduceMotion ? undefined : { 
                   backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'] 
                 }}
                 transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
@@ -54,7 +55,7 @@ export const CameraView = ({ isOpen, mode = 'meal', onClose, onSimulateCapture, 
                 <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4">
                   {isLabel ? <ReceiptText size={30} className="text-white/50" strokeWidth={1.4} /> : <Utensils size={30} className="text-white/50" strokeWidth={1.4} />}
                 </div>
-                <p className="font-sans text-[15px] text-white/68">{isLabel ? 'Read label' : 'Identify meal'}</p>
+                <p className="font-sans text-[15px] text-white/68">{isLabel ? 'Find label' : 'Identify meal'}</p>
                 <p className="font-sans text-[12px] text-white/38 mt-1">Identifying meal...</p>
               </div>
             </div>
@@ -64,15 +65,16 @@ export const CameraView = ({ isOpen, mode = 'meal', onClose, onSimulateCapture, 
               {isLabel && (
                 <button
                   onClick={onNotFound}
-                  className="h-12 px-4 rounded-full bg-white/10 text-white/68 font-sans text-[13px] font-medium border border-white/10 hover:bg-white/15 transition-colors"
+                  className="min-h-11 px-4 rounded-full bg-white/10 text-white/68 font-sans text-[13px] font-medium border border-white/10 hover:bg-white/15 transition-colors"
                 >
-                  Not found
+                  Add instead
                 </button>
               )}
               <button 
                 onClick={() => {
                   onSimulateCapture();
                 }}
+                aria-label={isLabel ? 'Use label' : 'Use photo'}
                 className="w-20 h-20 rounded-full border-4 border-white/30 flex items-center justify-center hover:border-white/50 transition-colors"
               >
                 <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg group">

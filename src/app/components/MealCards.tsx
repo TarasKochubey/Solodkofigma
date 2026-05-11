@@ -9,10 +9,12 @@ const sourceLabels: Record<string, string> = {
   estimated: 'Estimated',
   from_memory: 'From Memory',
   scanned: 'Scanned',
-  not_found: 'Manual',
-  offline: 'Recent',
+  not_found: 'Saved',
+  offline: 'Saved',
   recent: 'Recent',
-  manual: 'Manual'
+  manual: 'Homemade',
+  homemade: 'Homemade',
+  saved: 'Saved'
 };
 
 const getSourceLabel = (source?: string, state?: MealCardState) => {
@@ -79,7 +81,7 @@ export const ExpandedMealCard = ({ title, carbs, calories, details, source, stat
           </span>
           {isOffline && (
             <span className="font-sans text-[11px] leading-none text-[#8B918C] font-semibold uppercase tracking-[0.15em] bg-white/50 px-2 py-1 rounded-full shadow-sm">
-              Offline
+              Using Memory
             </span>
           )}
         </div>
@@ -88,10 +90,10 @@ export const ExpandedMealCard = ({ title, carbs, calories, details, source, stat
         </h2>
       </div>
       <div className="text-right shrink-0">
-        <div className="font-sans text-[56px] leading-[0.8] font-semibold text-[#1F2422] tracking-tighter flex items-baseline">
+        <div className="font-sans text-[54px] leading-[0.82] font-semibold text-[#1F2422] tracking-tighter flex items-baseline">
           {isNotFound ? '--' : carbs}<span className="text-[20px] text-[#5F6661] font-medium ml-1">g</span>
         </div>
-        <div className="font-sans text-[12px] leading-none text-[#8B918C] mt-1">carbs</div>
+        <div className="font-sans text-[12px] leading-none text-[#8B918C] mt-1">estimate</div>
       </div>
     </div>
     
@@ -103,7 +105,7 @@ export const ExpandedMealCard = ({ title, carbs, calories, details, source, stat
         )}
       </div>
       <div className="flex items-center justify-between gap-4">
-        <span className="font-sans text-[14px] leading-snug text-[#8B918C]">{ratio || (isNotFound ? 'Add it once, then it can be remembered.' : 'Carb ratio unavailable')}</span>
+        <span className="font-sans text-[14px] leading-snug text-[#8B918C]">{ratio || (isNotFound ? 'Add it once, then it can be remembered.' : 'Usual details can be added later.')}</span>
         {(lastEnjoyed || previousUsage) && (
           <span className="font-sans text-[12px] leading-snug text-[#8B918C] text-right shrink-0">{previousUsage || `Last: ${lastEnjoyed}`}</span>
         )}

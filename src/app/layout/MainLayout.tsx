@@ -61,7 +61,7 @@ export const MainLayout = () => {
         title: saved?.name || titleCaseFood(food.replace(/offline|saved foods/ig, '').trim() || 'Saved Meal'),
         carbs: saved?.carbs || 32,
         calories: saved?.calories || 260,
-        source: 'Recent',
+        source: 'Saved',
         state: 'offline',
         isEstimated: true,
         previousUsage: 'Using saved foods',
@@ -73,9 +73,9 @@ export const MainLayout = () => {
       return {
         title: titleCaseFood(food || 'New Food'),
         carbs: 0,
-        source: 'Manual',
+        source: 'Saved',
         state: 'not_found',
-        details: { portion: amount || 'No portion set', ratio: '' }
+        details: { portion: amount || 'Add a usual portion', ratio: '' }
       };
     }
 
@@ -139,9 +139,7 @@ export const MainLayout = () => {
     setOrbState('processing');
     setPendingText(text);
     
-    // Simulate API logic
     setTimeout(() => {
-      // If it's short, simulate asking for weight
       if (text.length < 10 && !text.includes('g') && !text.includes('bowl')) {
         setClarificationText('How much?');
         setOrbState('clarification');
