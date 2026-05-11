@@ -1,8 +1,10 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, ScanLine, Camera as CameraIcon } from 'lucide-react';
+import { X, Camera as CameraIcon, ReceiptText, Utensils } from 'lucide-react';
 
-export const CameraView = ({ isOpen, onClose, onSimulateCapture }: { isOpen: boolean; onClose: () => void; onSimulateCapture: () => void }) => {
+export const CameraView = ({ isOpen, mode = 'meal', onClose, onSimulateCapture, onNotFound }: { isOpen: boolean; mode?: 'meal' | 'label'; onClose: () => void; onSimulateCapture: () => void; onNotFound?: () => void }) => {
+  const isLabel = mode === 'label';
+
   return (
     <AnimatePresence>
       {isOpen && (
@@ -13,7 +15,7 @@ export const CameraView = ({ isOpen, onClose, onSimulateCapture }: { isOpen: boo
           className="absolute inset-0 z-[60] pointer-events-auto overflow-hidden flex flex-col justify-end"
         >
           {/* Soft blur backdrop */}
-          <div className="absolute inset-0 bg-black/40 backdrop-blur-md" onClick={onClose} />
+          <div className="absolute inset-0 bg-[#1F2422]/35 backdrop-blur-md" onClick={onClose} />
           
           {/* Simulated Camera Window */}
           <motion.div 
@@ -21,11 +23,14 @@ export const CameraView = ({ isOpen, onClose, onSimulateCapture }: { isOpen: boo
             animate={{ y: 0, scale: 1 }}
             exit={{ y: '100%', scale: 0.95 }}
             transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="relative w-full h-[80%] bg-[#1c1c1e] rounded-t-[44px] shadow-[0_-24px_64px_rgba(0,0,0,0.4)] border-t border-white/10 overflow-hidden flex flex-col"
+            className="relative w-full h-[80%] bg-[#2E312F] rounded-t-[44px] shadow-[0_-24px_64px_rgba(31,36,34,0.32)] border-t border-white/10 overflow-hidden flex flex-col"
           >
             {/* Top Bar */}
             <div className="flex justify-between items-center px-6 pt-6 pb-2 relative z-10">
-              <span className="font-sans text-[15px] font-medium text-white/70">Point at food or label</span>
+              <div>
+                <span className="font-sans text-[15px] font-medium text-white/78">{isLabel ? 'Place the label in view' : 'Frame the meal softly'}</span>
+                <p className="font-sans text-[12px] text-white/42 mt-0.5">{isLabel ? 'Barcode or nutrition label' : 'Meal photo or plate estimate'}</p>
+              </div>
               <button 
                 onClick={onClose}
                 className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/20 transition-colors"
@@ -42,23 +47,28 @@ export const CameraView = ({ isOpen, onClose, onSimulateCapture }: { isOpen: boo
                   backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'] 
                 }}
                 transition={{ duration: 10, repeat: Infinity, ease: "linear" }}
-                className="absolute inset-0 bg-gradient-to-br from-[#2c2c2e] via-[#3a3a3c] to-[#1c1c1e] bg-[length:200%_200%] opacity-50"
+                className="absolute inset-0 bg-gradient-to-br from-[#5F6661] via-[#3E433F] to-[#2E312F] bg-[length:200%_200%] opacity-60"
               />
               
-              {/* Frame bracket */}
-              <div className="relative w-[280px] h-[280px] border border-white/20 rounded-[32px] flex items-center justify-center">
-                <ScanLine size={48} className="text-white/30" strokeWidth={1} />
-                
-                {/* Corner markers */}
-                <div className="absolute top-[-2px] left-[-2px] w-6 h-6 border-t-2 border-l-2 border-white/60 rounded-tl-[32px]" />
-                <div className="absolute top-[-2px] right-[-2px] w-6 h-6 border-t-2 border-r-2 border-white/60 rounded-tr-[32px]" />
-                <div className="absolute bottom-[-2px] left-[-2px] w-6 h-6 border-b-2 border-l-2 border-white/60 rounded-bl-[32px]" />
-                <div className="absolute bottom-[-2px] right-[-2px] w-6 h-6 border-b-2 border-r-2 border-white/60 rounded-br-[32px]" />
+              <div className={`${isLabel ? 'w-[260px] h-[180px]' : 'w-[280px] h-[280px]'} relative border border-white/18 bg-white/[0.03] rounded-[34px] flex flex-col items-center justify-center backdrop-blur-[2px] shadow-[inset_0_2px_20px_rgba(255,255,255,0.06)]`}>
+                <div className="w-16 h-16 rounded-full bg-white/10 flex items-center justify-center mb-4">
+                  {isLabel ? <ReceiptText size={30} className="text-white/50" strokeWidth={1.4} /> : <Utensils size={30} className="text-white/50" strokeWidth={1.4} />}
+                </div>
+                <p className="font-sans text-[15px] text-white/68">{isLabel ? 'Read label' : 'Identify meal'}</p>
+                <p className="font-sans text-[12px] text-white/38 mt-1">Identifying meal...</p>
               </div>
             </div>
 
             {/* Bottom Control */}
-            <div className="pb-12 pt-6 flex justify-center items-center relative z-10 bg-gradient-to-t from-black/80 to-transparent">
+            <div className="pb-12 pt-6 flex justify-center items-center gap-5 relative z-10 bg-gradient-to-t from-[#1F2422]/80 to-transparent">
+              {isLabel && (
+                <button
+                  onClick={onNotFound}
+                  className="h-12 px-4 rounded-full bg-white/10 text-white/68 font-sans text-[13px] font-medium border border-white/10 hover:bg-white/15 transition-colors"
+                >
+                  Not found
+                </button>
+              )}
               <button 
                 onClick={() => {
                   onSimulateCapture();
@@ -69,6 +79,7 @@ export const CameraView = ({ isOpen, onClose, onSimulateCapture }: { isOpen: boo
                   <CameraIcon size={24} className="text-black/80 group-hover:scale-110 transition-transform" />
                 </div>
               </button>
+              {isLabel && <div className="w-[86px]" />}
             </div>
           </motion.div>
         </motion.div>

@@ -84,7 +84,7 @@ export const ExpandedMealCard = ({ title, carbs, calories, details, source, stat
           )}
         </div>
         <h2 className="font-sans text-[24px] leading-[28px] font-medium text-[#1F2422] tracking-tight whitespace-pre-line">
-          {isNotFound ? 'Food not found' : title}
+          {isNotFound ? 'Not in Memory yet' : title}
         </h2>
       </div>
       <div className="text-right shrink-0">
@@ -103,7 +103,7 @@ export const ExpandedMealCard = ({ title, carbs, calories, details, source, stat
         )}
       </div>
       <div className="flex items-center justify-between gap-4">
-        <span className="font-sans text-[14px] leading-snug text-[#8B918C]">{ratio || (isNotFound ? 'Add the values once, then save for next time.' : 'Carb ratio unavailable')}</span>
+        <span className="font-sans text-[14px] leading-snug text-[#8B918C]">{ratio || (isNotFound ? 'Add it once, then it can be remembered.' : 'Carb ratio unavailable')}</span>
         {(lastEnjoyed || previousUsage) && (
           <span className="font-sans text-[12px] leading-snug text-[#8B918C] text-right shrink-0">{previousUsage || `Last: ${lastEnjoyed}`}</span>
         )}
@@ -131,7 +131,7 @@ export const ExpandedMealCard = ({ title, carbs, calories, details, source, stat
       <div className="flex gap-2">
         <button onClick={onEdit} className="flex-1 bg-white/30 backdrop-blur-md rounded-[18px] py-2.5 font-sans text-[13px] font-medium text-[#8B918C] hover:bg-white/50 transition-colors border border-white/30 flex items-center justify-center gap-1.5">
           <Pencil size={14} strokeWidth={1.7} />
-          Edit
+          {isNotFound ? 'Try again' : 'Edit'}
         </button>
         <button onClick={onCancel} className="flex-1 bg-white/30 backdrop-blur-md rounded-[18px] py-2.5 font-sans text-[13px] font-medium text-[#8B918C] hover:bg-white/50 transition-colors border border-white/30">
           Dismiss

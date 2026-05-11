@@ -1,9 +1,11 @@
 import React from 'react';
-import { motion } from 'motion/react';
+import { motion, useReducedMotion } from 'motion/react';
 
 type OrbState = 'idle' | 'listening' | 'processing' | 'clarification';
 
 export const AmbientOrb = ({ state = 'idle', onClick }: { state?: OrbState; onClick?: () => void }) => {
+  const shouldReduceMotion = useReducedMotion();
+
   const getScale = () => {
     switch(state) {
       case 'listening': return [1.05, 1.15, 1.05];
@@ -40,7 +42,7 @@ export const AmbientOrb = ({ state = 'idle', onClick }: { state?: OrbState; onCl
     >
       {/* Outer ambient intelligence aura */}
       <motion.div 
-        animate={{ 
+        animate={shouldReduceMotion ? { opacity: state === 'processing' ? 0.12 : 0.08 } : { 
           scale: state === 'listening' ? [1.2, 1.4, 1.2] : [1.1, 1.2, 1.1],
           opacity: state === 'listening' ? [0.15, 0.25, 0.15] : [0.05, 0.1, 0.05]
         }}
@@ -50,7 +52,7 @@ export const AmbientOrb = ({ state = 'idle', onClick }: { state?: OrbState; onCl
 
       {/* Breathing environmental resonance */}
       <motion.div 
-        animate={{ 
+        animate={shouldReduceMotion ? { opacity: state === 'processing' ? 0.24 : 0.16 } : { 
           scale: getScale(), 
           opacity: state === 'clarification' ? [0.1, 0.15, 0.1] : [0.2, 0.35, 0.2],
           rotate: state === 'processing' ? [0, 180, 360] : 0
@@ -64,7 +66,7 @@ export const AmbientOrb = ({ state = 'idle', onClick }: { state?: OrbState; onCl
       
       {/* Defined luminous core */}
       <motion.div 
-        animate={{ 
+        animate={shouldReduceMotion ? { opacity: state === 'clarification' ? 0.5 : 0.85 } : { 
           scale: state === 'listening' ? [0.85, 0.95, 0.85] : [0.8, 0.88, 0.8],
           opacity: state === 'clarification' ? 0.5 : 0.9,
           rotate: state === 'processing' ? [0, -180, -360] : [0, 45, 0]

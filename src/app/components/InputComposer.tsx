@@ -7,6 +7,7 @@ export const InputComposer = ({
   onClose, 
   onSubmit, 
   onCameraOpen,
+  onBarcodeOpen,
   placeholder = "What are you eating?",
   supportingText
 }: { 
@@ -14,6 +15,7 @@ export const InputComposer = ({
   onClose: () => void; 
   onSubmit: (text: string) => void;
   onCameraOpen: () => void;
+  onBarcodeOpen: () => void;
   placeholder?: string;
   supportingText?: string;
 }) => {
@@ -74,7 +76,11 @@ export const InputComposer = ({
               >
                 <Camera size={19} strokeWidth={1.5} />
               </button>
-              <button className="w-9 h-9 flex items-center justify-center text-[#8B918C] hover:text-[#5F6661] transition-colors" aria-label="Barcode scan">
+              <button
+                onClick={onBarcodeOpen}
+                className="w-9 h-9 flex items-center justify-center text-[#8B918C] hover:text-[#5F6661] transition-colors"
+                aria-label="Label scan"
+              >
                 <ScanBarcode size={19} strokeWidth={1.5} />
               </button>
               <button 

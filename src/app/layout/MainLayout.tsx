@@ -18,9 +18,11 @@ export const MainLayout = () => {
   
   const [composerOpen, setComposerOpen] = useState(false);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [cameraMode, setCameraMode] = useState<'meal' | 'label'>('meal');
   const [resultOpen, setResultOpen] = useState(false);
   const [pendingText, setPendingText] = useState('');
   const [pendingResult, setPendingResult] = useState<any>(null);
+  const [quietStatus, setQuietStatus] = useState('');
 
   const extractAmount = (text: string) => {
     const match = text.match(/(\d+(?:[.,]\d+)?)\s?(g|gram|grams|kg|ml|cup|cups|bowl|bowls|slice|slices|piece|pieces)\b/i);
@@ -53,22 +55,23 @@ export const MainLayout = () => {
     const grams = gramsFromAmount(amount);
     const memoryMatch = memory.find(item => normalized && item.name.toLowerCase().includes(normalized));
 
-    if (/offline/i.test(foodText)) {
+    if (/offline|saved foods/i.test(foodText)) {
+      const saved = memory[0];
       return {
-        title: titleCaseFood(food.replace(/offline/ig, '').trim() || 'Saved Meal'),
-        carbs: 32,
-        calories: 260,
+        title: saved?.name || titleCaseFood(food.replace(/offline|saved foods/ig, '').trim() || 'Saved Meal'),
+        carbs: saved?.carbs || 32,
+        calories: saved?.calories || 260,
         source: 'Recent',
         state: 'offline',
         isEstimated: true,
-        previousUsage: 'Using saved values',
-        details: { portion: amount || 'last logged portion', ratio: 'Saved ratio' }
+        previousUsage: 'Using saved foods',
+        details: { portion: amount || saved?.weight || 'last logged portion', ratio: saved?.carbRatio || 'Saved ratio' }
       };
     }
 
-    if (/unknown|not found|xyz/i.test(foodText)) {
+    if (/unknown|not found|xyz|not in memory/i.test(foodText)) {
       return {
-        title: titleCaseFood(food),
+        title: titleCaseFood(food || 'New Food'),
         carbs: 0,
         source: 'Manual',
         state: 'not_found',
@@ -97,8 +100,8 @@ export const MainLayout = () => {
     const resolvedGrams = grams || 250;
     const resolvedCarbs = Math.round((per100 * resolvedGrams) / 100);
 
-    return {
-      title: titleCaseFood(food),
+      return {
+        title: titleCaseFood(food),
       carbs: resolvedCarbs,
       calories: Math.round(resolvedCarbs * 7),
       source: 'Estimated',
@@ -106,6 +109,11 @@ export const MainLayout = () => {
       isEstimated: true,
       details: { portion: amount || '1 portion', ratio: `${per100}g per 100g` }
     };
+  };
+
+  const showQuietStatus = (message: string) => {
+    setQuietStatus(message);
+    window.setTimeout(() => setQuietStatus(''), 1800);
   };
 
   const handleOrbClick = () => {
@@ -150,17 +158,36 @@ export const MainLayout = () => {
     setOrbState('processing');
     setTimeout(() => {
       setOrbState('idle');
-      setPendingResult({
-        title: "Nutrition Label\nRecognized",
-        carbs: 12,
-        calories: 88,
-        source: 'Scanned',
-        state: 'scanned',
-        isEstimated: false,
-        details: { portion: "Per 100g", ratio: "12g per 100g" }
-      });
+      if (cameraMode === 'label') {
+        setPendingResult({
+          title: "Scanned Rye Crispbread",
+          carbs: 18,
+          calories: 110,
+          source: 'Scanned',
+          state: 'scanned',
+          isEstimated: false,
+          details: { portion: "2 pieces (36g)", ratio: "50g per 100g" }
+        });
+      } else {
+        setPendingResult({
+          title: "Rice Bowl\nwith Vegetables",
+          carbs: 58,
+          calories: 420,
+          source: 'Estimated',
+          state: 'estimated',
+          isEstimated: true,
+          details: { portion: "1 bowl (330g)", ratio: "18g per 100g" }
+        });
+      }
       setResultOpen(true);
-    });
+    }, 1100);
+  };
+
+  const handleBarcodeNotFound = () => {
+    setCameraOpen(false);
+    setOrbState('idle');
+    setPendingResult(resolveMeal('not in memory label'));
+    setResultOpen(true);
   };
 
   const handleLogMeal = () => {
@@ -177,6 +204,7 @@ export const MainLayout = () => {
     }
     setResultOpen(false);
     setPendingResult(null);
+    showQuietStatus('Meal logged');
     navigate('/log');
   };
 
@@ -198,6 +226,7 @@ export const MainLayout = () => {
         state: 'from_memory',
         previousUsage: 'Saved to Memory'
       });
+      showQuietStatus(pendingResult.kind === 'recipe' ? 'Recipe saved' : 'Saved to Memory');
     }
   };
 
@@ -312,6 +341,12 @@ export const MainLayout = () => {
               supportingText={orbState === 'clarification' ? clarificationText : undefined}
               onCameraOpen={() => {
                 setComposerOpen(false);
+                setCameraMode('meal');
+                setCameraOpen(true);
+              }}
+              onBarcodeOpen={() => {
+                setComposerOpen(false);
+                setCameraMode('label');
                 setCameraOpen(true);
               }}
             />
@@ -320,8 +355,10 @@ export const MainLayout = () => {
 
         <CameraView 
           isOpen={cameraOpen} 
+          mode={cameraMode}
           onClose={() => setCameraOpen(false)} 
           onSimulateCapture={handleCameraCapture}
+          onNotFound={handleBarcodeNotFound}
         />
 
         <AnimatePresence>
@@ -335,6 +372,19 @@ export const MainLayout = () => {
               onAdjust={handleAdjustPortion}
               onEdit={handleAdjustPortion}
             />
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {quietStatus && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 8 }}
+              className="absolute left-1/2 bottom-[108px] z-[70] -translate-x-1/2 bg-white/70 backdrop-blur-xl border border-white/60 shadow-[0_10px_28px_-12px_rgba(180,140,120,0.22)] rounded-full px-4 py-2 pointer-events-none"
+            >
+              <span className="font-sans text-[13px] font-medium text-[#5F6661]">{quietStatus}</span>
+            </motion.div>
           )}
         </AnimatePresence>
       </div>
