@@ -130,7 +130,7 @@ export const Onboarding = () => {
             >
               <h2 className="font-serif text-[34px] leading-[40px] text-[#1F2422] tracking-tight mb-5">Start with one meal.</h2>
               <p className="font-sans text-[17px] leading-[25px] text-[#5F6661] font-light max-w-[286px] mx-auto">
-                Type a food, use a photo, or choose from Memory. Denied permissions will not block logging.
+                Type a food, use a photo, or choose from Memory. Skipped permissions stay available later and won't limit logging.
               </p>
             </motion.div>
           )}

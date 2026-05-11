@@ -2,7 +2,7 @@ import React from 'react';
 import { BookmarkPlus, Check, Clock, Pencil, Plus, SlidersHorizontal } from 'lucide-react';
 import { motion } from 'motion/react';
 
-type MealCardState = 'exact' | 'estimated' | 'from_memory' | 'scanned' | 'not_found' | 'offline';
+type MealCardState = 'exact' | 'estimated' | 'from_memory' | 'scanned' | 'not_found' | 'offline' | 'recent' | 'homemade' | 'saved';
 
 const sourceLabels: Record<string, string> = {
   exact: 'Recent',
@@ -63,6 +63,7 @@ export const ExpandedMealCard = ({ title, carbs, calories, details, source, stat
   const sourceLabel = getSourceLabel(source, state);
   const isNotFound = state === 'not_found';
   const isOffline = state === 'offline';
+  const showEstimateLabel = state === 'estimated';
   const primaryAction = isNotFound ? 'Add manually' : 'Log meal';
   const portion = details?.portion || 'Portion needed';
   const ratio = details?.ratio;
@@ -93,7 +94,9 @@ export const ExpandedMealCard = ({ title, carbs, calories, details, source, stat
         <div className="font-sans text-[54px] leading-[0.82] font-semibold text-[#1F2422] tracking-tighter flex items-baseline">
           {isNotFound ? '--' : carbs}<span className="text-[20px] text-[#5F6661] font-medium ml-1">g</span>
         </div>
-        <div className="font-sans text-[12px] leading-none text-[#8B918C] mt-1">estimate</div>
+        {showEstimateLabel && (
+          <div className="font-sans text-[12px] leading-none text-[#8B918C] mt-1">estimated</div>
+        )}
       </div>
     </div>
     

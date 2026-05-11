@@ -56,7 +56,6 @@ export const CameraView = ({ isOpen, mode = 'meal', onClose, onSimulateCapture, 
                   {isLabel ? <ReceiptText size={30} className="text-white/50" strokeWidth={1.4} /> : <Utensils size={30} className="text-white/50" strokeWidth={1.4} />}
                 </div>
                 <p className="font-sans text-[15px] text-white/68">{isLabel ? 'Find label' : 'Identify meal'}</p>
-                <p className="font-sans text-[12px] text-white/38 mt-1">Identifying meal...</p>
               </div>
             </div>
 

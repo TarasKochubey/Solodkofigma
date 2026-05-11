@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState } from 'react';
 import { format } from 'date-fns';
+import { getCurrentMealMoment } from '../utils/mealMoment';
 
 type Meal = {
   id: string;
@@ -70,10 +71,7 @@ export const SolodkoProvider = ({ children }: { children: React.ReactNode }) => 
   };
 
   const getMealMoment = (): Meal['mealMoment'] => {
-    const hour = Number(format(new Date(), 'H'));
-    if (hour < 12) return 'Morning';
-    if (hour < 17) return 'Afternoon';
-    return 'Evening';
+    return getCurrentMealMoment();
   };
 
   const rememberLoggedMeal = (meal: Meal) => {

@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import { ChevronLeft, Clock, Plus, Search, Utensils, Wheat } from 'lucide-react';
 import { useNavigate } from 'react-router';
 import { useSolodko } from '../context/SolodkoContext';
+import { getCurrentMealMoment } from '../utils/mealMoment';
 
 const SectionTitle = ({ icon, title }: { icon: React.ReactNode; title: string }) => (
   <div className="flex items-center gap-2 mb-3 px-2">
@@ -56,8 +57,12 @@ const MemoryCard = ({ item, delay, compact = false, onQuickLog }: any) => (
 export const Memory = () => {
   const navigate = useNavigate();
   const { memory, quickLogMemory } = useSolodko();
+  const mealMoment = getCurrentMealMoment();
 
-  const usuallyAroundNow = memory.filter(item => item.recurrence === 'Usually around now' || item.mealMoment === 'Morning').slice(0, 2);
+  const usuallyAroundNow = memory
+    .filter(item => item.mealMoment === mealMoment || item.recurrence === 'Usually around now')
+    .sort((a, b) => (b.usedThisWeek || 0) - (a.usedThisWeek || 0))
+    .slice(0, 2);
   const recurringMeals = memory.filter(item => item.kind === 'meal');
   const savedFoods = memory.filter(item => item.kind === 'custom_food');
   const recipes = memory.filter(item => item.kind === 'recipe');

@@ -6,6 +6,7 @@ export const InputComposer = ({
   isOpen, 
   onClose, 
   onSubmit, 
+  onVoiceOpen,
   onCameraOpen,
   onBarcodeOpen,
   placeholder = "What are you eating?",
@@ -14,6 +15,7 @@ export const InputComposer = ({
   isOpen: boolean; 
   onClose: () => void; 
   onSubmit: (text: string) => void;
+  onVoiceOpen: () => void;
   onCameraOpen: () => void;
   onBarcodeOpen: () => void;
   placeholder?: string;
@@ -66,7 +68,7 @@ export const InputComposer = ({
               }}
             />
             <div className="flex items-center gap-1 pr-1">
-              <button className="w-11 h-11 flex items-center justify-center text-[#8B918C] hover:text-[#5F6661] transition-colors" aria-label="Voice input">
+              <button onClick={onVoiceOpen} className="w-11 h-11 flex items-center justify-center text-[#8B918C] hover:text-[#5F6661] transition-colors" aria-label="Voice input">
                 <Mic size={19} strokeWidth={1.5} />
               </button>
               <button 

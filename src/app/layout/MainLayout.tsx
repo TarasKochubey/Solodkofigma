@@ -8,6 +8,7 @@ import { InputComposer } from '../components/InputComposer';
 import { CameraView } from '../components/CameraView';
 import { MealResultOverlay } from '../components/MealResultOverlay';
 import { useSolodko } from '../context/SolodkoContext';
+import { getCurrentMealMoment } from '../utils/mealMoment';
 
 export const MainLayout = () => {
   const navigate = useNavigate();
@@ -23,6 +24,8 @@ export const MainLayout = () => {
   const [pendingText, setPendingText] = useState('');
   const [pendingResult, setPendingResult] = useState<any>(null);
   const [quietStatus, setQuietStatus] = useState('');
+  const [voiceMode, setVoiceMode] = useState(false);
+  const mealMoment = getCurrentMealMoment();
 
   const extractAmount = (text: string) => {
     const match = text.match(/(\d+(?:[.,]\d+)?)\s?(g|gram|grams|kg|ml|cup|cups|bowl|bowls|slice|slices|piece|pieces)\b/i);
@@ -111,6 +114,29 @@ export const MainLayout = () => {
     };
   };
 
+  const openMealResult = (result: any) => {
+    setPendingResult(result);
+    setResultOpen(true);
+  };
+
+  const resultFromMemoryItem = (item: any) => ({
+    title: item.name,
+    carbs: item.carbs,
+    calories: item.calories,
+    source: item.source === 'Recent' ? 'Recent' : item.source === 'Scanned' ? 'Scanned' : 'From Memory',
+    state: item.source === 'Recent' ? 'exact' : 'from_memory',
+    isEstimated: item.isEstimated,
+    previousUsage: item.lastUsed ? `Last logged ${item.lastUsed.toLowerCase()}` : item.recurrence,
+    details: {
+      portion: item.weight,
+      ratio: item.carbRatio || (item.kind === 'recipe' ? `${item.carbs}g per portion` : 'Saved in Memory')
+    }
+  });
+
+  const handleRecurringMealSelect = (item: any) => {
+    openMealResult(resultFromMemoryItem(item));
+  };
+
   const showQuietStatus = (message: string) => {
     setQuietStatus(message);
     window.setTimeout(() => setQuietStatus(''), 1800);
@@ -124,6 +150,7 @@ export const MainLayout = () => {
 
   const handleComposerSubmit = (text: string) => {
     setComposerOpen(false);
+    setVoiceMode(false);
     
     if (orbState === 'clarification') {
       setOrbState('processing');
@@ -183,9 +210,20 @@ export const MainLayout = () => {
 
   const handleBarcodeNotFound = () => {
     setCameraOpen(false);
-    setOrbState('idle');
-    setPendingResult(resolveMeal('not in memory label'));
-    setResultOpen(true);
+    setOrbState('processing');
+    setTimeout(() => {
+      setOrbState('idle');
+      openMealResult(resolveMeal('not in memory label'));
+    }, 700);
+  };
+
+  const handleVoiceStart = () => {
+    setVoiceMode(true);
+    setOrbState('listening');
+    setComposerOpen(true);
+    window.setTimeout(() => {
+      setOrbState(current => current === 'listening' ? 'idle' : current);
+    }, 1400);
   };
 
   const handleLogMeal = () => {
@@ -250,7 +288,7 @@ export const MainLayout = () => {
         <div className="relative z-10 flex flex-col h-full">
           {/* Main Content Area */}
           <div className="flex-1 overflow-y-auto no-scrollbar pb-[220px]" style={{ scrollbarWidth: 'none' }}>
-            <Outlet />
+            <Outlet context={{ mealMoment, onRecurringMealSelect: handleRecurringMealSelect }} />
           </div>
 
           {/* Ambient Console Architecture */}
@@ -333,17 +371,24 @@ export const MainLayout = () => {
             
             <InputComposer 
               isOpen={composerOpen} 
-              onClose={() => setComposerOpen(false)} 
+              onClose={() => {
+                setComposerOpen(false);
+                setVoiceMode(false);
+                setOrbState(current => current === 'listening' ? 'idle' : current);
+              }} 
               onSubmit={handleComposerSubmit}
-              placeholder={orbState === 'clarification' ? "300g" : "What are you eating?"}
-              supportingText={orbState === 'clarification' ? clarificationText : undefined}
+              placeholder={orbState === 'clarification' ? "300g" : voiceMode ? "Speak or type a food" : "What are you eating?"}
+              supportingText={orbState === 'clarification' ? clarificationText : voiceMode ? 'Say a food, or type it here' : undefined}
+              onVoiceOpen={handleVoiceStart}
               onCameraOpen={() => {
                 setComposerOpen(false);
+                setVoiceMode(false);
                 setCameraMode('meal');
                 setCameraOpen(true);
               }}
               onBarcodeOpen={() => {
                 setComposerOpen(false);
+                setVoiceMode(false);
                 setCameraMode('label');
                 setCameraOpen(true);
               }}
