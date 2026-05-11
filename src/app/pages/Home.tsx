@@ -51,27 +51,31 @@ export const Home = () => {
       <div className="pointer-events-auto z-10 relative">
         <RecurringCard 
           title="Oatmeal & Berries" carbs={45} weight="250g" time="8:30 AM" delay={0.2} 
-          matchScore={92}
+          source="Recent"
+          previousUsage="Used yesterday"
           onClick={() => setShowResult({
             title: "Oatmeal with Mixed\nSummer Berries",
             carbs: 45,
-            source: "Memory",
+            calories: 310,
+            source: "Recent",
+            state: "exact",
             isEstimated: false,
             lastEnjoyed: "Yesterday",
-            confidence: 98,
             details: { portion: "1 bowl (250g)", ratio: "18g per 100g" }
           })}
         />
         <RecurringCard 
           title="Flat White (Oat)" carbs={14} weight="240ml" time="9:00 AM" delay={0.3} 
-          matchScore={85}
+          source="From Memory"
+          previousUsage="Used Tuesday"
           onClick={() => setShowResult({
             title: "Oat Flat White",
             carbs: 14,
-            source: "Memory",
+            calories: 130,
+            source: "From Memory",
+            state: "from_memory",
             isEstimated: false,
             lastEnjoyed: "Tuesday",
-            confidence: 95,
             details: { portion: "1 cup (240ml)", ratio: "6g per 100ml" }
           })}
         />

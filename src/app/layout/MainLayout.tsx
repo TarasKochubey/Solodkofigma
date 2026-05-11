@@ -12,7 +12,7 @@ import { useSolodko } from '../context/SolodkoContext';
 export const MainLayout = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { addLog } = useSolodko();
+  const { addLog, addMemory, memory } = useSolodko();
   const [orbState, setOrbState] = useState<'idle' | 'listening' | 'processing' | 'clarification'>('idle');
   const [clarificationText, setClarificationText] = useState('');
   
@@ -21,6 +21,92 @@ export const MainLayout = () => {
   const [resultOpen, setResultOpen] = useState(false);
   const [pendingText, setPendingText] = useState('');
   const [pendingResult, setPendingResult] = useState<any>(null);
+
+  const extractAmount = (text: string) => {
+    const match = text.match(/(\d+(?:[.,]\d+)?)\s?(g|gram|grams|kg|ml|cup|cups|bowl|bowls|slice|slices|piece|pieces)\b/i);
+    return match ? match[0].replace(',', '.') : '';
+  };
+
+  const stripAmount = (text: string) => text.replace(/(\d+(?:[.,]\d+)?)\s?(g|gram|grams|kg|ml|cup|cups|bowl|bowls|slice|slices|piece|pieces)\b/ig, '').trim();
+
+  const gramsFromAmount = (amount: string) => {
+    const value = Number(amount.match(/\d+(?:\.\d+)?/)?.[0] || 0);
+    if (!value) return 0;
+    if (/kg/i.test(amount)) return value * 1000;
+    if (/cup/i.test(amount)) return value * 240;
+    if (/bowl/i.test(amount)) return value * 300;
+    if (/slice/i.test(amount)) return value * 60;
+    return value;
+  };
+
+  const titleCaseFood = (text: string) => text
+    .trim()
+    .split(/\s+/)
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
+
+  const resolveMeal = (foodText: string, amountText?: string) => {
+    const rawFood = stripAmount(foodText) || foodText;
+    const amount = amountText || extractAmount(foodText);
+    const food = rawFood.trim();
+    const normalized = food.toLowerCase();
+    const grams = gramsFromAmount(amount);
+    const memoryMatch = memory.find(item => normalized && item.name.toLowerCase().includes(normalized));
+
+    if (/offline/i.test(foodText)) {
+      return {
+        title: titleCaseFood(food.replace(/offline/ig, '').trim() || 'Saved Meal'),
+        carbs: 32,
+        calories: 260,
+        source: 'Recent',
+        state: 'offline',
+        isEstimated: true,
+        previousUsage: 'Using saved values',
+        details: { portion: amount || 'last logged portion', ratio: 'Saved ratio' }
+      };
+    }
+
+    if (/unknown|not found|xyz/i.test(foodText)) {
+      return {
+        title: titleCaseFood(food),
+        carbs: 0,
+        source: 'Manual',
+        state: 'not_found',
+        details: { portion: amount || 'No portion set', ratio: '' }
+      };
+    }
+
+    if (memoryMatch) {
+      const ratioMatch = memoryMatch.carbRatio?.match(/\d+(?:\.\d+)?/)?.[0];
+      const per100 = ratioMatch ? Number(ratioMatch) : memoryMatch.carbs / Math.max(gramsFromAmount(memoryMatch.weight), 100) * 100;
+      const resolvedCarbs = grams ? Math.round((per100 * grams) / 100) : memoryMatch.carbs;
+
+      return {
+        title: memoryMatch.name,
+        carbs: resolvedCarbs,
+        calories: Math.round(resolvedCarbs * 7.2),
+        source: 'From Memory',
+        state: 'from_memory',
+        isEstimated: false,
+        previousUsage: memoryMatch.lastUsed ? `Used ${memoryMatch.lastUsed.toLowerCase()}` : undefined,
+        details: { portion: amount || memoryMatch.weight, ratio: `${per100.toFixed(per100 % 1 ? 1 : 0)}g per 100g` }
+      };
+    }
+
+    const per100 = normalized.includes('apple') ? 14 : normalized.includes('borscht') ? 7.3 : 18;
+    const resolvedGrams = grams || 250;
+    const resolvedCarbs = Math.round((per100 * resolvedGrams) / 100);
+
+    return {
+      title: titleCaseFood(food),
+      carbs: resolvedCarbs,
+      calories: Math.round(resolvedCarbs * 7),
+      source: 'Estimated',
+      state: amount ? 'estimated' : 'exact',
+      isEstimated: true,
+      details: { portion: amount || '1 portion', ratio: `${per100}g per 100g` }
+    };
+  };
 
   const handleOrbClick = () => {
     if (orbState === 'idle' || orbState === 'clarification') {
@@ -36,14 +122,7 @@ export const MainLayout = () => {
       setTimeout(() => {
         setOrbState('idle');
         setClarificationText('');
-        setPendingResult({
-          title: pendingText,
-          carbs: 35,
-          source: 'AI',
-          isEstimated: false,
-          confidence: 92,
-          details: { portion: text, ratio: "11g per 100g" }
-        });
+        setPendingResult(resolveMeal(pendingText, text));
         setResultOpen(true);
       }, 1000);
       return;
@@ -60,14 +139,7 @@ export const MainLayout = () => {
         setOrbState('clarification');
       } else {
         setOrbState('idle');
-        setPendingResult({
-          title: text,
-          carbs: text.includes('apple') ? 25 : 45,
-          source: 'AI',
-          isEstimated: true,
-          confidence: 88,
-          details: { portion: "1 portion", ratio: "Estimated" }
-        });
+        setPendingResult(resolveMeal(text));
         setResultOpen(true);
       }
     }, 1500);
@@ -81,7 +153,9 @@ export const MainLayout = () => {
       setPendingResult({
         title: "Nutrition Label\nRecognized",
         carbs: 12,
+        calories: 88,
         source: 'Scanned',
+        state: 'scanned',
         isEstimated: false,
         details: { portion: "Per 100g", ratio: "12g per 100g" }
       });
@@ -96,12 +170,44 @@ export const MainLayout = () => {
         carbs: pendingResult.carbs,
         weight: pendingResult.details.portion,
         source: pendingResult.source,
-        isEstimated: pendingResult.isEstimated
+        isEstimated: pendingResult.isEstimated,
+        carbRatio: pendingResult.details.ratio,
+        lastUsed: 'Today'
       });
     }
     setResultOpen(false);
     setPendingResult(null);
     navigate('/log');
+  };
+
+  const handleSaveMemory = () => {
+    if (pendingResult && pendingResult.state !== 'not_found') {
+      addMemory({
+        name: pendingResult.title.replace('\n', ' '),
+        carbs: pendingResult.carbs,
+        calories: pendingResult.calories,
+        weight: pendingResult.details.portion,
+        source: 'From Memory',
+        isEstimated: pendingResult.isEstimated,
+        carbRatio: pendingResult.details.ratio,
+        lastUsed: 'Today'
+      });
+      setPendingResult({
+        ...pendingResult,
+        source: 'From Memory',
+        state: 'from_memory',
+        previousUsage: 'Saved to Memory'
+      });
+    }
+  };
+
+  const handleAdjustPortion = () => {
+    if (!pendingResult) return;
+    setPendingText(pendingResult.title.replace('\n', ' '));
+    setClarificationText('Adjust portion');
+    setResultOpen(false);
+    setOrbState('clarification');
+    setComposerOpen(true);
   };
 
   return (
@@ -202,7 +308,8 @@ export const MainLayout = () => {
               isOpen={composerOpen} 
               onClose={() => setComposerOpen(false)} 
               onSubmit={handleComposerSubmit}
-              placeholder={orbState === 'clarification' ? "e.g., a handful, 300g..." : "What are you eating?"}
+              placeholder={orbState === 'clarification' ? "300g" : "What are you eating?"}
+              supportingText={orbState === 'clarification' ? clarificationText : undefined}
               onCameraOpen={() => {
                 setComposerOpen(false);
                 setCameraOpen(true);
@@ -224,6 +331,9 @@ export const MainLayout = () => {
               onClose={() => setResultOpen(false)}
               result={pendingResult}
               onLog={handleLogMeal}
+              onSaveMemory={handleSaveMemory}
+              onAdjust={handleAdjustPortion}
+              onEdit={handleAdjustPortion}
             />
           )}
         </AnimatePresence>
